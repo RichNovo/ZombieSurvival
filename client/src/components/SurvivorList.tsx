@@ -1,12 +1,27 @@
 "use client";
-import { Box, Container, Typography } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { useState } from "react";
+import { Box, Button, Container, Typography } from "@mui/material";
+import { DataGrid, GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
+import LocationDialog from "./LocationDialog";
+import ReportDialog from "./ReportDialog";
 import { Survivor } from "../api";
+import { SurvivorRow } from "../utils/utils";
 
 export default function SurvivorList(props: {
   survivorList: Survivor[];
   fetchSurvivors: () => void;
 }) {
+  const [editingSurvivor, setEditingSurvivor] = useState<SurvivorRow | null>(
+    null,
+  );
+
+  const [reportingSurvivor, setReportingSurvivor] =
+    useState<SurvivorRow | null>(null);
+
+  const isInfected = (survivor: SurvivorRow) => {
+    return survivor.reportedCount > 2;
+  };
 
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 40 },
@@ -36,6 +51,32 @@ export default function SurvivorList(props: {
       type: "number",
       width: 90,
     },
+    {
+      field: "actions",
+      type: "actions",
+      headerName: "",
+      width: 350,
+      cellClassName: "actions",
+      getActions: ({ row }) => {
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={() => setEditingSurvivor(row)}
+            color="inherit"
+          />,
+          <Button
+            variant="contained"
+            onClick={() => setReportingSurvivor(row)}
+            disabled={isInfected(row)}
+            color={isInfected(row) ? "warning" : "inherit"}
+          >
+            {isInfected(row) ? "Infected" : "Report"}
+          </Button>,
+        ];
+      },
+    },
   ];
 
   return (
@@ -51,6 +92,21 @@ export default function SurvivorList(props: {
         <b>List of survivors</b>
       </Typography>
       <Container>
+        {editingSurvivor && (
+          <LocationDialog
+            survivor={editingSurvivor}
+            onClose={() => setEditingSurvivor(null)}
+            onSubmit={() => props.fetchSurvivors()}
+          />
+        )}
+        {reportingSurvivor && (
+          <ReportDialog
+            reportedSurvivor={reportingSurvivor}
+            survivorList={props.survivorList}
+            onClose={() => setReportingSurvivor(null)}
+            onSubmit={() => props.fetchSurvivors()}
+          />
+        )}
         <DataGrid columns={columns} rows={props.survivorList} />
       </Container>
     </Box>

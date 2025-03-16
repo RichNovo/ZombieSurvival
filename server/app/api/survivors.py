@@ -78,3 +78,31 @@ async def update_survivor(id: int, longitude: int, latitude: int) -> Optional[Su
         db_survivor.latitude = latitude
         sess.commit()
     return None
+
+
+@router.put("/report")
+async def report_survivor(
+    reporting_survivor_id: int, reported_survivor_id: int
+) -> bool:
+    with SessionLocal() as sess:
+        reporting_relation_count = (
+            sess.query(DbReporting)
+            .where(
+                DbReporting.reporting_survivor_id == reporting_survivor_id,
+                DbReporting.reported_survivor_id == reported_survivor_id,
+            )
+            .count()
+        )
+
+        # survivor already reported
+        if reporting_relation_count > 0:
+            return False
+
+        sess.add(
+            DbReporting(
+                reporting_survivor_id=reporting_survivor_id,
+                reported_survivor_id=reported_survivor_id,
+            )
+        )
+        sess.commit()
+    return True

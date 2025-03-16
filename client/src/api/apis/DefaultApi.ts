@@ -35,6 +35,11 @@ export interface CreateSurvivorSurvivorsPostRequest {
     createSurvivorRequest: CreateSurvivorRequest;
 }
 
+export interface ReportSurvivorSurvivorsReportPutRequest {
+    reportingSurvivorId: number;
+    reportedSurvivorId: number;
+}
+
 export interface UpdateSurvivorSurvivorsPutRequest {
     id: number;
     longitude: number;
@@ -109,6 +114,58 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async getSurvivorsSurvivorsGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<SurvivorListReply> {
         const response = await this.getSurvivorsSurvivorsGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Report Survivor
+     */
+    async reportSurvivorSurvivorsReportPutRaw(requestParameters: ReportSurvivorSurvivorsReportPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<boolean>> {
+        if (requestParameters['reportingSurvivorId'] == null) {
+            throw new runtime.RequiredError(
+                'reportingSurvivorId',
+                'Required parameter "reportingSurvivorId" was null or undefined when calling reportSurvivorSurvivorsReportPut().'
+            );
+        }
+
+        if (requestParameters['reportedSurvivorId'] == null) {
+            throw new runtime.RequiredError(
+                'reportedSurvivorId',
+                'Required parameter "reportedSurvivorId" was null or undefined when calling reportSurvivorSurvivorsReportPut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['reportingSurvivorId'] != null) {
+            queryParameters['reporting_survivor_id'] = requestParameters['reportingSurvivorId'];
+        }
+
+        if (requestParameters['reportedSurvivorId'] != null) {
+            queryParameters['reported_survivor_id'] = requestParameters['reportedSurvivorId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/survivors/report`,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (this.isJsonMime(response.headers.get('content-type'))) {
+            return new runtime.JSONApiResponse<boolean>(response);
+        } else {
+            return new runtime.TextApiResponse(response) as any;
+        }
+    }
+
+    /**
+     * Report Survivor
+     */
+    async reportSurvivorSurvivorsReportPut(requestParameters: ReportSurvivorSurvivorsReportPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<boolean> {
+        const response = await this.reportSurvivorSurvivorsReportPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
