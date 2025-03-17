@@ -27,5 +27,8 @@ app.add_middleware(
 app.include_router(survivors_router, prefix="/survivors")
 app.include_router(inventory_router, prefix="/inventory")
 
+
+app.mount("/", StaticFiles(directory="./dist/", html=True), name="public")
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
