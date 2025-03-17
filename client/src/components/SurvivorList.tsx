@@ -11,6 +11,11 @@ import { SurvivorRow } from "../utils/utils";
 export default function SurvivorList(props: {
   survivorList: Survivor[];
   fetchSurvivors: () => void;
+  survivorSelectedForTrade: SurvivorRow | null;
+  setSurvivorSelectedForTrade: (survivor: SurvivorRow | null) => void;
+  survivorAcceptedTrade: SurvivorRow | null;
+  setSurvivorAcceptedTrade: (survivor: SurvivorRow | null) => void;
+  setShowInventoryForUser: (selectedSurvivor: SurvivorRow) => void;
 }) {
   const [editingSurvivor, setEditingSurvivor] = useState<SurvivorRow | null>(
     null,
@@ -19,8 +24,43 @@ export default function SurvivorList(props: {
   const [reportingSurvivor, setReportingSurvivor] =
     useState<SurvivorRow | null>(null);
 
+  if (
+    props.survivorSelectedForTrade != null &&
+    props.survivorList.some(
+      (e) => e.id == props.survivorSelectedForTrade!.id,
+    ) == false
+  ) {
+    props.setSurvivorSelectedForTrade(null);
+  }
+
   const isInfected = (survivor: SurvivorRow) => {
     return survivor.reportedCount > 2;
+  };
+
+  const onTradeClick = (survivor: SurvivorRow) => {
+    if (props.survivorSelectedForTrade == null) {
+      props.setSurvivorSelectedForTrade(survivor);
+    } else {
+      if (props.survivorSelectedForTrade.id == survivor.id) {
+        props.setSurvivorSelectedForTrade(null);
+      } else {
+        props.setSurvivorAcceptedTrade(survivor);
+      }
+    }
+  };
+
+  const isTradeOfferActive = (survivor: Survivor) => {
+    return (
+      props.survivorSelectedForTrade != null &&
+      props.survivorSelectedForTrade.id != survivor.id
+    );
+  };
+
+  const isSelectedForTrade = (survivor: Survivor) => {
+    return (
+      props.survivorSelectedForTrade != null &&
+      props.survivorSelectedForTrade.id == survivor.id
+    );
   };
 
   const columns: GridColDef[] = [
@@ -68,11 +108,30 @@ export default function SurvivorList(props: {
           />,
           <Button
             variant="contained"
+            color={isSelectedForTrade(row) ? "success" : "inherit"}
+            onClick={() => onTradeClick(row)}
+            disabled={isInfected(row)}
+          >
+            {isInfected(row)
+              ? "Trade"
+              : isTradeOfferActive(row)
+                ? "Accept Trade"
+                : "Trade"}
+          </Button>,
+          <Button
+            variant="contained"
             onClick={() => setReportingSurvivor(row)}
             disabled={isInfected(row)}
             color={isInfected(row) ? "warning" : "inherit"}
           >
             {isInfected(row) ? "Infected" : "Report"}
+          </Button>,
+          <Button
+            variant="contained"
+            onClick={() => props.setShowInventoryForUser(row)}
+            disabled={isInfected(row)}
+          >
+            Inventory
           </Button>,
         ];
       },

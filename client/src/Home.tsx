@@ -1,13 +1,29 @@
 "use client";
 import { useState, useEffect } from "react";
 import api from "./utils/apiSetup";
-import { Box } from "@mui/material";
+import TradeView from "./components/TradeView";
+import { Box, Button } from "@mui/material";
 import AddSurvivorForm from "./components/AddSurvivorForm";
 import { SurvivorRow } from "./utils/utils";
 import SurvivorList from "./components/SurvivorList";
+import SurvivorInventory from "./components/SurvivorInventory";
 
 export default function Home() {
   const [survivorList, setSurvivorList] = useState<SurvivorRow[]>([]);
+
+  const [survivorSelectedForTrade, setSurvivorSelectedForTrade] =
+    useState<SurvivorRow | null>(null);
+  const [survivorAcceptedTrade, setSurvivorAcceptedTrade] =
+    useState<SurvivorRow | null>(null);
+  const [showInventoryForUser, setShowInventoryForUser] =
+    useState<SurvivorRow | null>(null);
+
+  if (
+    survivorSelectedForTrade != null &&
+    survivorList.some((e) => e.id == survivorSelectedForTrade.id) == false
+  ) {
+    setSurvivorSelectedForTrade(null);
+  }
 
   useEffect(() => {
     fetchSurvivors();
@@ -22,7 +38,43 @@ export default function Home() {
     );
   };
 
-  return (
+  const closeTradeView = () => {
+    setSurvivorSelectedForTrade(null);
+    setSurvivorAcceptedTrade(null);
+  };
+
+  return survivorSelectedForTrade != null && survivorAcceptedTrade != null ? (
+    <div>
+      <TradeView
+        survivorSelectedForTrade={survivorSelectedForTrade}
+        survivorAcceptedTrade={survivorAcceptedTrade}
+        onCloseTradeView={closeTradeView}
+      />
+    </div>
+  ) : showInventoryForUser != null ? (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+      }}
+    >
+      <SurvivorInventory
+        tradeId={0}
+        itemSelectedForTradeList={null}
+        setItemSelectedForTradeList={() => {}}
+        survivor={showInventoryForUser}
+      />
+      <Button
+        size="large"
+        variant="contained"
+        onClick={() => setShowInventoryForUser(null)}
+      >
+        Close
+      </Button>
+    </Box>
+  ) : (
     <div>
       <Box
         sx={{
@@ -44,6 +96,11 @@ export default function Home() {
           <SurvivorList
             survivorList={survivorList}
             fetchSurvivors={fetchSurvivors}
+            survivorSelectedForTrade={survivorSelectedForTrade}
+            setSurvivorSelectedForTrade={setSurvivorSelectedForTrade}
+            survivorAcceptedTrade={survivorAcceptedTrade}
+            setSurvivorAcceptedTrade={setSurvivorAcceptedTrade}
+            setShowInventoryForUser={setShowInventoryForUser}
           />
         </Box>
       </Box>
